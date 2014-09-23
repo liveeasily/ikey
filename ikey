@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+
+import argparse
+import subprocess
+import os
+
+parser = argparse.ArgumentParser(description='Inject key utility')
+parser.add_argument('-t', '--top', help='the top of android source tree(default:$ANDROID_BUILD_TOP)', dest='top')
+parser.add_argument('-k', '--keycode', help='key code number to inject', dest='keycode', type=int)
+
+args = parser.parse_args()
+
+topdir = None
+keycode = None
+
+KEY_EVENT_JAVA = "frameworks/base/core/java/android/view/KeyEvent.java"
+
+def inject_key(keycode):
+    cmd = "adb shell input keyevent %d" % keycode
+    print cmd
+    os.system(cmd)
+
+def get_topdir():
+    if args.top != None:
+        return os.path.abspath(args.top)
+
+    topdir = os.getenv("ANDROID_BUILD_TOP")
+    if topdir != None:
+        return os.path.abspath(topdir)
+    else:
+        return None
+
+def parse_keycodes(topdir):
+    print "parse_keycodes: topdir=", topdir
+
+    keycode_map = {}
+    filename = "%s/%s" % (topdir, KEY_EVENT_JAVA)
+    file = open(filename, "r")
+    for line in file:
+        line = line.strip()
+        if line.startswith("public static final int KEYCODE_"):
+            tokens = line.split('=')
+            codename = tokens[0].strip().split(' ')[4]
+            keycode = tokens[1].strip().split(';')[0].strip()
+            keycode_map[codename.split('KEYCODE_')[1]] = keycode
+
+    return keycode_map
+
+def sort_keycode_map(map):
+    import collections
+    return collections.OrderedDict(sorted(map.items()))
+
+def print_keycode_map(map):
+    for key, val in map.items():
+        print key, '-->', val
+
+def main():
+    keycode = args.keycode
+    if keycode != None:
+        inject_key(keycode)
+        exit(0)
+
+    topdir = get_topdir()
+    if topdir == None:
+        print "Couldn't know the top of android source tree."
+        parser.print_help()
+        exit(-1)
+
+    print "topdir=[%s]" % topdir
+
+    kmap = parse_keycodes(topdir)
+    sorted_keycode_map = sort_keycode_map(kmap)
+    print_keycode_map(sorted_keycode_map)
+
+if __name__ == '__main__':
+    main()
+
