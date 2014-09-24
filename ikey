@@ -5,13 +5,14 @@ import subprocess
 import os
 
 parser = argparse.ArgumentParser(description='Inject key utility')
-parser.add_argument('-t', '--top', help='the top of android source tree(default:$ANDROID_BUILD_TOP)', dest='top')
-parser.add_argument('-k', '--keycode', help='key code number to inject', dest='keycode', type=int)
-
+parser.add_argument('-t', '--top',
+    help='the top of android source tree(default:$ANDROID_BUILD_TOP)',
+    dest='top')
+parser.add_argument('-k', '--keycode', help='key code number to inject',
+                    dest='keycode', type=int)
+parser.add_argument('-s', '--search', help='keyword to search keyevent code',
+                    dest='keyword')
 args = parser.parse_args()
-
-topdir = None
-keycode = None
 
 KEY_EVENT_JAVA = "frameworks/base/core/java/android/view/KeyEvent.java"
 
@@ -30,20 +31,24 @@ def get_topdir():
     else:
         return None
 
-def parse_keycodes(topdir):
-    print "parse_keycodes: topdir=", topdir
+def parse_keycodes(topdir, keyword):
+    # print "parse_keycodes: topdir=%s, keyworkd=%s" %(topdir, keyword)
+    if keyword is None:
+        keyword = ''
+
+    import re
+    reg = 'KEYCODE_.*%s.*\s*=\s*[0-9]+' % keyword
+    #print 'pattern=', reg
+    pattern = re.compile(reg, re.I)
 
     keycode_map = {}
     filename = "%s/%s" % (topdir, KEY_EVENT_JAVA)
     file = open(filename, "r")
     for line in file:
-        line = line.strip()
-        if line.startswith("public static final int KEYCODE_"):
-            tokens = line.split('=')
-            codename = tokens[0].strip().split(' ')[4]
-            keycode = tokens[1].strip().split(';')[0].strip()
-            keycode_map[codename.split('KEYCODE_')[1]] = keycode
-
+        result = pattern.findall(line)
+        if result:
+            codename, keycode = result[0].split('=')
+            keycode_map[codename.strip()] = keycode.strip()
     return keycode_map
 
 def sort_keycode_map(map):
@@ -68,7 +73,7 @@ def main():
 
     print "topdir=[%s]" % topdir
 
-    kmap = parse_keycodes(topdir)
+    kmap = parse_keycodes(topdir, args.keyword)
     sorted_keycode_map = sort_keycode_map(kmap)
     print_keycode_map(sorted_keycode_map)
 
