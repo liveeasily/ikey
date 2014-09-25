@@ -9,7 +9,7 @@ parser.add_argument('-t', '--top',
     help='the top of android source tree(default:$ANDROID_BUILD_TOP)',
     dest='top')
 parser.add_argument('-k', '--keycode', help='key code number to inject',
-                    dest='keycode', type=int)
+                    dest='keycode')
 parser.add_argument('-s', '--search', help='keyword to search keyevent code',
                     dest='keyword')
 args = parser.parse_args()
@@ -17,7 +17,7 @@ args = parser.parse_args()
 KEY_EVENT_JAVA = "frameworks/base/core/java/android/view/KeyEvent.java"
 
 def inject_key(keycode):
-    cmd = "adb shell input keyevent %d" % keycode
+    cmd = "adb shell input keyevent %s" % keycode
     print cmd
     os.system(cmd)
 
@@ -56,8 +56,10 @@ def sort_keycode_map(map):
     return collections.OrderedDict(sorted(map.items()))
 
 def print_keycode_map(map):
+    index = 1
     for key, val in map.items():
-        print key, '-->', val
+        print '[%d] %s (keycode=%s)' % (index, key, val)
+        index += 1
 
 def main():
     keycode = args.keycode
@@ -71,11 +73,17 @@ def main():
         parser.print_help()
         exit(-1)
 
-    print "topdir=[%s]" % topdir
+    #print "topdir=[%s]" % topdir
 
     kmap = parse_keycodes(topdir, args.keyword)
     sorted_keycode_map = sort_keycode_map(kmap)
-    print_keycode_map(sorted_keycode_map)
+
+    if sorted_keycode_map:
+        print_keycode_map(sorted_keycode_map)
+        select = input('select: ')
+        inject_key(sorted_keycode_map.values()[select])
+    else:
+        print 'Not found keycodes for \'%s\'' % args.keyword
 
 if __name__ == '__main__':
     main()
