@@ -81,7 +81,7 @@ def main():
     if sorted_keycode_map:
         print_keycode_map(sorted_keycode_map)
         select = input('select: ')
-        inject_key(sorted_keycode_map.values()[select])
+        inject_key(sorted_keycode_map.values()[select-1])
     else:
         print 'Not found keycodes for \'%s\'' % args.keyword
 
