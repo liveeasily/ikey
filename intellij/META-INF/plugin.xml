@@ -1,0 +1,45 @@
+<idea-plugin version="2">
+  <id>com.windriver.intellij.plugin.ikey</id>
+  <name>ikey</name>
+  <version>1.0</version>
+  <vendor email="sunjae.kim@windriver.com">KDC</vendor>
+
+  <description><![CDATA[
+      Inject key event!<br>
+    ]]></description>
+
+  <change-notes><![CDATA[
+      2014-10-13: Test version<br>
+    ]]>
+  </change-notes>
+
+  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+  <idea-version since-build="131"/>
+
+  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Add your extensions here -->
+  </extensions>
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+    <!-- Add your project components here -->
+  </project-components>
+
+  <actions>
+    <!-- Add your actions here -->
+      <action id="ikey" class="com.windriver.intellij.plugin.ikey.IKey" text="IKey" description="Inject key even">
+          <add-to-group group-id="ToolsMenu" anchor="last"/>
+          <keyboard-shortcut keymap="$default" first-keystroke="ctrl I" second-keystroke="ctrl K"/>
+      </action>
+  </actions>
+
+</idea-plugin>
